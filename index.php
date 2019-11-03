@@ -130,8 +130,9 @@
             title: match.name,
             curveType: 'function',
             legend: {position: 'bottom'},
-            height: 1000,
-            width: 5000,
+            height: 580,
+            width: 1340,
+            chartArea: {left: 10, top: 20, width: "100%", height: "100%"},
         };
 
         const chart = new google.visualization.LineChart(document.getElementById('match_' + index));
