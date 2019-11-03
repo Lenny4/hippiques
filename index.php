@@ -17,7 +17,7 @@
     <div class="tab-content"></div>
 </div>
 
-<?php $nbMatch = 1; ?>
+<?php $nbMatch = 30; ?>
 <script>
     const matchs = [];
     let json = null;
@@ -61,12 +61,14 @@
     google.charts.setOnLoadCallback(drawChart);
 
     function drawChart(match, index) {
+        const maxRunnerOdd = 10;
+        const avgBeforeTime = 2000;
+        const ratio = 0.01;
         const runnerNameToNotDisplay = [];
         const runnersIndex = [];
-        const maxRunnerOdd = 10;
         const oddsByRunners = [];
         const chartDatas = [
-            ['time']
+            ['time', 'borneSup', 'borneInf']
         ];
         // selectionne les runners à afficher
         match.json.map((obj, index) => {
@@ -91,9 +93,9 @@
                 });
             }
         });
-        // récupère les moyennes des runners sur les 2000 premières secondes
+        // récupère les moyennes des runners sur les avgBeforeTime premières secondes
         match.json.map((obj, index) => {
-            if (index <= 2000 && obj.volume > 0) {
+            if (index <= avgBeforeTime && obj.volume > 0) {
                 obj.runners.map((runner, indexRunner) => {
                     if (runnersIndex.includes(indexRunner)) {
                         const oddRunner = oddsByRunners.find(x => x.runnerName === runner.runnerName);
@@ -112,7 +114,11 @@
         match.json.map((obj, index) => {
             if (index <= 3700 && obj.volume > 0) {
                 const array = [];
-                array.push(3600 + obj.time);
+                const time = 3600 + obj.time;
+                array.push(time);
+                const borneSup = ratio * (Math.sqrt(time));
+                array.push(borneSup);
+                array.push(-borneSup);
                 obj.runners.map((runner, indexRunner) => {
                     if (runnersIndex.includes(indexRunner)) {
                         const odd = runner.backOdd;
@@ -132,7 +138,7 @@
             legend: {position: 'bottom'},
             height: 580,
             width: 1340,
-            chartArea: {left: 10, top: 20, width: "100%", height: "100%"},
+            chartArea: {left: 50, top: 1, width: "95%", height: "90%"},
         };
 
         const chart = new google.visualization.LineChart(document.getElementById('match_' + index));

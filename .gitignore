@@ -1,4 +1,2 @@
-*
-!convert.php
-!index.php
-!.gitignore
+export/
+.idea
