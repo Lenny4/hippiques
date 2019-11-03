@@ -17,7 +17,7 @@
     <div class="tab-content"></div>
 </div>
 
-<?php $nbMatch = 2; ?>
+<?php $nbMatch = 1; ?>
 <script>
     const matchs = [];
     let json = null;
@@ -50,15 +50,105 @@
         let activeClass2 = "";
         if (index === 0) activeClass = "active";
         if (index === 0) activeClass2 = "in active";
-        $(ul).append('<li class="' + activeClass + '"><a data-toggle="tab" href="#' + index + '">' + match.name + '</a></li>');
-        $(div).append('<div id="' + index + '" class="tab-pane fade ' + activeClass2 + '">' + match.name + '</div>');
+        $(ul).append('<li class="' + activeClass + '"><a data-toggle="tab" href="#match_' + index + '">' + match.name + '</a></li>');
+        $(div).append('<div id="match_' + index + '" class="tab-pane fade ' + activeClass2 + '"></div>');
     });
 </script>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages': ['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart(match, index) {
+        const runnerNameToNotDisplay = [];
+        const runnersIndex = [];
+        const maxRunnerOdd = 10;
+        const oddsByRunners = [];
+        const chartDatas = [
+            ['time']
+        ];
+        // selectionne les runners à afficher
+        match.json.map((obj, index) => {
+            const runners = obj.runners.filter(x => x.backOdd > maxRunnerOdd);
+            if (Array.isArray(runners) && runners.length > 0) {
+                runners.map((runner) => {
+                    if (typeof runner === "object" && runner !== null && !runnerNameToNotDisplay.includes(runner.runnerName)) {
+                        runnerNameToNotDisplay.push(runner.runnerName);
+                    }
+                });
+            }
+        });
+        // initialise oddsByRunners
+        match.json[0].runners.map((runner, indexRunner) => {
+            if (runner.backOdd > 0 && !runnerNameToNotDisplay.includes(runner.runnerName)) {
+                runnersIndex.push(indexRunner);
+                chartDatas[0].push(runner.runnerName);
+                oddsByRunners.push({
+                    runnerName: runner.runnerName,
+                    values: [],
+                    avg: null,
+                });
+            }
+        });
+        // récupère les moyennes des runners sur les 2000 premières secondes
+        match.json.map((obj, index) => {
+            if (index <= 2000 && obj.volume > 0) {
+                obj.runners.map((runner, indexRunner) => {
+                    if (runnersIndex.includes(indexRunner)) {
+                        const oddRunner = oddsByRunners.find(x => x.runnerName === runner.runnerName);
+                        oddRunner.values.push(runner.backOdd);
+                    }
+                });
+            }
+        });
+        // calcule la moyenne pour tous les runners
+        oddsByRunners.map((runnerOdds) => {
+            runnerOdds.avg = runnerOdds.values.reduce(function (avg, value, _, {length}) {
+                return avg + value / length;
+            }, 0);
+        });
+        // fait le tableau pour dessiner le graphe
+        match.json.map((obj, index) => {
+            if (index <= 3700 && obj.volume > 0) {
+                const array = [];
+                array.push(3600 + obj.time);
+                obj.runners.map((runner, indexRunner) => {
+                    if (runnersIndex.includes(indexRunner)) {
+                        const odd = runner.backOdd;
+                        const oddRunner = oddsByRunners.find(x => x.runnerName === runner.runnerName);
+                        array.push(odd - oddRunner.avg);
+                    }
+                });
+                chartDatas.push(array);
+            }
+        });
+
+        const data = google.visualization.arrayToDataTable(chartDatas);
+
+        const options = {
+            title: match.name,
+            curveType: 'function',
+            legend: {position: 'bottom'},
+            height: 1000,
+            width: 5000,
+        };
+
+        const chart = new google.visualization.LineChart(document.getElementById('match_' + index));
+
+        chart.draw(data, options);
+    }
+</script>
+
 
 <script>
-    console.log(matchs);
+    $(document).ready(() => {
+        setTimeout(() => {
+            matchs.map((match, index) => {
+                drawChart(match, index);
+            });
+        }, 1000);
+    });
 </script>
 </body>
 </html>
