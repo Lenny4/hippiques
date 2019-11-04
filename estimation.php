@@ -123,6 +123,7 @@ Ouvre ta console : Ctrl + Alt + i
                         name: "test",
                         type: "lay",
                         odd: runner.layOdd,
+                        otherOdd: runner.backOdd,
                         time: 3600 + lastObj.time,
                         mise: getMise(myRunnerBet, runner.layOdd),
                     });
@@ -131,6 +132,7 @@ Ouvre ta console : Ctrl + Alt + i
                         name: "test",
                         type: "back",
                         odd: runner.backOdd,
+                        otherOdd: runner.layOdd,
                         time: 3600 + lastObj.time,
                         mise: getMise(myRunnerBet, runner.backOdd),
                     });
@@ -159,13 +161,21 @@ Ouvre ta console : Ctrl + Alt + i
             const obj = {runnerName: myRunnerBet.runnerName, result: 0};
             myRunnerBet.bets.map((bets, i) => {
                 if (i % 2 === 0) {
-                    let miseLay = myRunnerBet.bets[i].mise;
-                    let miseBack = myRunnerBet.bets[i + 1].mise;
-                    if (myRunnerBet.bets[i].type === "back") {
-                        miseLay = myRunnerBet.bets[i + 1].mise;
-                        miseBack = myRunnerBet.bets[i].mise;
+                    let value = 0;
+                    if (typeof myRunnerBet.bets[i + 1] === "undefined") {
+                        const odd = myRunnerBet.bets[i].odd;
+                        const thisMise = myRunnerBet.bets[i].mise;
+                        value = ((1 / thisMise) * (odd * (thisMise - 1))) - ((1 - (1 / thisMise)) * odd)
+                    } else {
+                        let miseLay = myRunnerBet.bets[i].mise;
+                        let miseBack = myRunnerBet.bets[i + 1].mise;
+                        if (myRunnerBet.bets[i].type === "back") {
+                            miseLay = myRunnerBet.bets[i + 1].mise;
+                            miseBack = myRunnerBet.bets[i].mise;
+                            value = miseLay - miseBack;
+                        }
+                        obj.result += parseInt((value) * 100) / 100;
                     }
-                    obj.result += parseInt((miseLay - miseBack) * 100) / 100;
                 }
             });
             report.push(obj);
@@ -185,6 +195,7 @@ Ouvre ta console : Ctrl + Alt + i
                     name: "test",
                     type: type,
                     odd: odd,
+                    otherOdd: runner.layOdd,
                     time: 3600 + time,
                     mise: getMise(myRunnerBet, odd),
                 });
@@ -197,6 +208,7 @@ Ouvre ta console : Ctrl + Alt + i
                     name: "test",
                     type: type,
                     odd: odd,
+                    otherOdd: runner.backOdd,
                     time: 3600 + time,
                     mise: getMise(myRunnerBet, odd),
                 });
