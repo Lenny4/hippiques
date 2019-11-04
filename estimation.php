@@ -218,6 +218,7 @@ Ouvre ta console : Ctrl + Alt + i
 
     // c'est ici qu'on travaille
     $(document).ready(() => {
+        let totalWin = 0;
         matchs.map((match) => {
             const result = getFormatedMatchAndAvg(match);
             const runnersName = result.runnersName;
@@ -236,8 +237,12 @@ Ouvre ta console : Ctrl + Alt + i
                 }
             });
             addMissingBet(runnerBets, lastObj);
-            console.log(runnerBets, report(runnerBets));
+            const matchReport = report(runnerBets);
+            matchReport.map((obj) => totalWin += obj.result);
+            console.log(runnerBets, matchReport);
         });
+        console.log("total win", totalWin);
+        console.log("%", (totalWin / initMise) / matchs.length);
     });
 </script>
 </body>
