@@ -20,3 +20,5 @@
     - $nbMatch = 21 max (on a 21 matchs au maximum)
     
 - si tu veux trouver un algo qui fait des backs et des lays au bon moment créer toi ton propre fichier estimation2.php
+
+- le fichier convert.php m'a juste permis de transfomer mes courses de .csv à .json
