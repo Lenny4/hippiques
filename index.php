@@ -13,6 +13,6 @@
 <body>
 <a href="chart.php" target="_blank">CHART</a><br/>
 <a href="estimation.php" target="_blank">ESTIMATION</a><br/>
-Lire le <a href="#">read me</a> pour plus d'info
+Lire le <a href="https://github.com/Lenny4/hippiques">read me</a> pour plus d'info
 </body>
 </html>
