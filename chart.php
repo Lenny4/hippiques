@@ -17,7 +17,7 @@
     <div class="tab-content"></div>
 </div>
 
-<?php $nbMatch = 1; ?>
+<?php $nbMatch = 30; ?>
 <script>
     const maxRunnerOdd = 10;
     const avgBeforeTime = 2000;
@@ -97,7 +97,7 @@
         });
         // récupère les moyennes des runners sur les avgBeforeTime premières secondes
         match.json.map((obj, index) => {
-            if (index <= avgBeforeTime && obj.volume > 0) {
+            if (obj.time > -3600 + avgBeforeTime && obj.volume > 0) {
                 obj.runners.map((runner, indexRunner) => {
                     if (runnersIndex.includes(indexRunner)) {
                         const oddRunner = oddsByRunners.find(x => x.runnerName === runner.runnerName);
@@ -114,7 +114,7 @@
         });
         // fait le tableau pour dessiner le graphe
         match.json.map((obj, index) => {
-            if (index <= 3700 && obj.volume > 0) {
+            if (index <= 3700 && obj.volume > 0 && obj.time > -3600 + avgBeforeTime) {
                 const array = [];
                 const time = 3600 + obj.time;
                 array.push(time);
