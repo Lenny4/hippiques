@@ -12,7 +12,7 @@
 </head>
 <body>
 Ouvre ta console : Ctrl + Alt + i
-<?php $nbMatch = 1; ?>
+<?php $nbMatch = 30; ?>
 <script>
     const matchs = [];
     let json = null;
@@ -41,6 +41,7 @@ Ouvre ta console : Ctrl + Alt + i
     const maxRunnerOdd = 10;
     const avgBeforeTime = 2000;
     const ratio = 0.02;
+    const initMise = 10;
 
     function getFormatedMatchAndAvg(match) {
         const runnerNameToNotDisplay = [];
@@ -115,51 +116,89 @@ Ouvre ta console : Ctrl + Alt + i
     function addMissingBet(runnerBets, lastObj) {
         runnerBets.map((myRunnerBet) => {
             if (myRunnerBet.bets.length % 2 !== 0) {
-                const lastBetType = myRunnerBet.bets[myRunnerBet.bets.length - 1].type;
+                const lastBet = myRunnerBet.bets[myRunnerBet.bets.length - 1];
                 const runner = lastObj.runners.find(x => x.runnerName === myRunnerBet.runnerName);
-                if (lastBetType === "back") {
+                if (lastBet.type === "back" && runner.layOdd > 1) {
                     myRunnerBet.bets.push({
                         name: "test",
                         type: "lay",
                         odd: runner.layOdd,
                         time: 3600 + lastObj.time,
+                        mise: getMise(myRunnerBet, runner.layOdd),
                     });
-                } else if (lastBetType === "lay") {
+                } else if (lastBet.type === "lay" && runner.backOdd > 1) {
                     myRunnerBet.bets.push({
                         name: "test",
                         type: "back",
                         odd: runner.backOdd,
                         time: 3600 + lastObj.time,
+                        mise: getMise(myRunnerBet, runner.backOdd),
                     });
-                } else {
-                    alert("error !!!!");
                 }
             }
         });
+    }
+
+    function getMise(myRunnerBet, odd) {
+        let mise = initMise;
+        if (myRunnerBet.bets.length % 2 !== 0) {
+            const lastBet = myRunnerBet.bets[myRunnerBet.bets.length - 1];
+            if (lastBet.type === "back" || lastBet.type === "lay") {
+                mise = (lastBet.odd * lastBet.mise) / odd;
+            } else {
+                alert("error getMise !!!!!")
+            }
+        }
+        mise = Math.round(mise * 100) / 100;
+        return mise;
+    }
+
+    function report(runnerBets) {
+        const report = [];
+        runnerBets.map((myRunnerBet) => {
+            const obj = {runnerName: myRunnerBet.runnerName, result: 0};
+            myRunnerBet.bets.map((bets, i) => {
+                if (i % 2 === 0) {
+                    let miseLay = myRunnerBet.bets[i].mise;
+                    let miseBack = myRunnerBet.bets[i + 1].mise;
+                    if (myRunnerBet.bets[i].type === "back") {
+                        miseLay = myRunnerBet.bets[i + 1].mise;
+                        miseBack = myRunnerBet.bets[i].mise;
+                    }
+                    obj.result += parseInt((miseLay - miseBack) * 100) / 100;
+                }
+            });
+            report.push(obj);
+        });
+        return report;
     }
 
     function bet(runner, runnerBets, bornes, time) {
         const myRunnerBet = runnerBets.find(x => x.runnerName === runner.runnerName);
         let lastBetType = null;
         if (myRunnerBet.bets.length > 0) lastBetType = myRunnerBet.bets[myRunnerBet.bets.length - 1].type;
-        if (lastBetType === null || lastBetType === "lay" || myRunnerBet.bets.length % 2 === 0) {
+        if (runner.backOdd > 1 && (lastBetType === null || lastBetType === "lay" || myRunnerBet.bets.length % 2 === 0)) {
             const type = "back";
+            const odd = runner.backOdd;
             if (runner.backOdd > bornes.borneSup) {
                 myRunnerBet.bets.push({
                     name: "test",
                     type: type,
-                    odd: runner.backOdd,
+                    odd: odd,
                     time: 3600 + time,
+                    mise: getMise(myRunnerBet, odd),
                 });
             }
-        } else if (lastBetType === null || lastBetType === "back" || myRunnerBet.bets.length % 2 === 0) {
+        } else if (runner.layOdd > 1 && (lastBetType === null || lastBetType === "back" || myRunnerBet.bets.length % 2 === 0)) {
             const type = "lay";
+            const odd = runner.layOdd;
             if (runner.backOdd < bornes.borneInf) {
                 myRunnerBet.bets.push({
                     name: "test",
                     type: type,
-                    odd: runner.backOdd,
+                    odd: odd,
                     time: 3600 + time,
+                    mise: getMise(myRunnerBet, odd),
                 });
             }
         }
@@ -185,7 +224,7 @@ Ouvre ta console : Ctrl + Alt + i
                 }
             });
             addMissingBet(runnerBets, lastObj);
-            console.log(runnerBets);
+            console.log(runnerBets, report(runnerBets));
         });
     });
 </script>
