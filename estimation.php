@@ -40,6 +40,7 @@ Ouvre ta console : Ctrl + Alt + i
 <script>
     const maxRunnerOdd = 10;
     const avgBeforeTime = 2000;
+    const ratio = 0.02;
 
     function getFormatedMatchAndAvg(match) {
         const runnerNameToNotDisplay = [];
