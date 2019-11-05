@@ -223,7 +223,7 @@ Ouvre ta console : Ctrl + Alt + i
             const result = getFormatedMatchAndAvg(match);
             const runnersName = result.runnersName;
             const avgByRunner = result.avgByRunner;
-            const runnerBets = initRunnersBet(runnersName);
+            let runnerBets = initRunnersBet(runnersName);
             let lastObj = null;
             match.json.map((obj, index) => {
                 if (3600 + obj.time > avgBeforeTime) {
@@ -237,9 +237,13 @@ Ouvre ta console : Ctrl + Alt + i
                 }
             });
             addMissingBet(runnerBets, lastObj);
-            const matchReport = report(runnerBets);
+            let matchReport = report(runnerBets);
             matchReport.map((obj) => totalWin += obj.result);
-            console.log(runnerBets, matchReport);
+            // dont display runner who hasn't bet
+            runnerBets = runnerBets.filter(x => x.bets.length > 0);
+            // dont display runner who hasn't bet
+            matchReport = matchReport.filter(x => x.result !== 0);
+            if (runnerBets.length !== 0) console.log(runnerBets, matchReport);
         });
         console.log("total win", totalWin);
         console.log("%", (totalWin / initMise) / matchs.length);
