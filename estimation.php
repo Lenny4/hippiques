@@ -183,37 +183,49 @@ Ouvre ta console : Ctrl + Alt + i
         return report;
     }
 
-    function bet(runner, runnerBets, bornes, time) {
-        const myRunnerBet = runnerBets.find(x => x.runnerName === runner.runnerName);
-        let lastBetType = null;
-        if (myRunnerBet.bets.length > 0) lastBetType = myRunnerBet.bets[myRunnerBet.bets.length - 1].type;
-        if (runner.backOdd > 1 && (lastBetType === null || lastBetType === "lay" || myRunnerBet.bets.length % 2 === 0)) {
-            const type = "back";
-            const odd = runner.backOdd;
-            if (runner.backOdd > bornes.borneSup) {
-                myRunnerBet.bets.push({
-                    name: "test",
-                    type: type,
-                    odd: odd,
-                    otherOdd: runner.layOdd,
-                    time: 3600 + time,
-                    mise: getMise(myRunnerBet, odd),
+    function bet(match, runnerBets, runnersName, avgByRunner) {
+        let lastObj = null;
+        match.json.map((obj, index) => {
+            if (3600 + obj.time > avgBeforeTime) {
+                obj.runners.map((runner) => {
+                    if (runnersName.includes(runner.runnerName) && obj.volume > 0) {
+                        const bornes = getBorne(runner, avgByRunner, 3600 + obj.time);
+                        const myRunnerBet = runnerBets.find(x => x.runnerName === runner.runnerName);
+                        let lastBetType = null;
+                        if (myRunnerBet.bets.length > 0) lastBetType = myRunnerBet.bets[myRunnerBet.bets.length - 1].type;
+                        if (runner.backOdd > 1 && (lastBetType === null || lastBetType === "lay" || myRunnerBet.bets.length % 2 === 0)) {
+                            const type = "back";
+                            const odd = runner.backOdd;
+                            if (runner.backOdd > bornes.borneSup) {
+                                myRunnerBet.bets.push({
+                                    name: "test",
+                                    type: type,
+                                    odd: odd,
+                                    otherOdd: runner.layOdd,
+                                    time: 3600 + obj.time,
+                                    mise: getMise(myRunnerBet, odd),
+                                });
+                            }
+                        } else if (runner.layOdd > 1 && (lastBetType === null || lastBetType === "back" || myRunnerBet.bets.length % 2 === 0)) {
+                            const type = "lay";
+                            const odd = runner.layOdd;
+                            if (runner.backOdd < bornes.borneInf) {
+                                myRunnerBet.bets.push({
+                                    name: "test",
+                                    type: type,
+                                    odd: odd,
+                                    otherOdd: runner.backOdd,
+                                    time: 3600 + obj.time,
+                                    mise: getMise(myRunnerBet, odd),
+                                });
+                            }
+                        }
+                        lastObj = obj;
+                    }
                 });
             }
-        } else if (runner.layOdd > 1 && (lastBetType === null || lastBetType === "back" || myRunnerBet.bets.length % 2 === 0)) {
-            const type = "lay";
-            const odd = runner.layOdd;
-            if (runner.backOdd < bornes.borneInf) {
-                myRunnerBet.bets.push({
-                    name: "test",
-                    type: type,
-                    odd: odd,
-                    otherOdd: runner.backOdd,
-                    time: 3600 + time,
-                    mise: getMise(myRunnerBet, odd),
-                });
-            }
-        }
+        });
+        return lastObj;
     }
 
     // c'est ici qu'on travaille
@@ -224,18 +236,7 @@ Ouvre ta console : Ctrl + Alt + i
             const runnersName = result.runnersName;
             const avgByRunner = result.avgByRunner;
             let runnerBets = initRunnersBet(runnersName);
-            let lastObj = null;
-            match.json.map((obj, index) => {
-                if (3600 + obj.time > avgBeforeTime) {
-                    obj.runners.map((runner) => {
-                        if (runnersName.includes(runner.runnerName) && obj.volume > 0) {
-                            const bornes = getBorne(runner, avgByRunner, 3600 + obj.time);
-                            bet(runner, runnerBets, bornes, obj.time);
-                            lastObj = obj;
-                        }
-                    });
-                }
-            });
+            const lastObj = bet(match, runnerBets, runnersName, avgByRunner);
             addMissingBet(runnerBets, lastObj);
             let matchReport = report(runnerBets);
             matchReport.map((obj) => totalWin += obj.result);
