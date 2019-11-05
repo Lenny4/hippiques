@@ -40,8 +40,8 @@ Ouvre ta console : Ctrl + Alt + i
 <script>
     const maxRunnerOdd = 10;
     const avgBeforeTime = 2000;
-    const ratio = 0.02;
-    const initMise = 10;
+    const ratio = 0.006;
+    const initMise = 100;
 
     function getFormatedMatchAndAvg(match) {
         const runnerNameToNotDisplay = [];
@@ -160,20 +160,21 @@ Ouvre ta console : Ctrl + Alt + i
         runnerBets.map((myRunnerBet) => {
             const obj = {runnerName: myRunnerBet.runnerName, result: 0};
             myRunnerBet.bets.map((bets, i) => {
+                let value = 0;
                 if (i % 2 === 0) {
-                    let value = 0;
                     if (typeof myRunnerBet.bets[i + 1] === "undefined") {
                         const odd = myRunnerBet.bets[i].odd;
                         const thisMise = myRunnerBet.bets[i].mise;
-                        value = ((1 / thisMise) * (odd * (thisMise - 1))) - ((1 - (1 / thisMise)) * odd)
+                        value = ((1 / thisMise) * (odd * (thisMise - 1))) - ((1 - (1 / thisMise)) * odd);
+                        obj.result += parseInt((value) * 100) / 100;
                     } else {
                         let miseLay = myRunnerBet.bets[i].mise;
                         let miseBack = myRunnerBet.bets[i + 1].mise;
                         if (myRunnerBet.bets[i].type === "back") {
                             miseLay = myRunnerBet.bets[i + 1].mise;
                             miseBack = myRunnerBet.bets[i].mise;
-                            value = miseLay - miseBack;
                         }
+                        value = miseLay - miseBack;
                         obj.result += parseInt((value) * 100) / 100;
                     }
                 }
@@ -195,34 +196,34 @@ Ouvre ta console : Ctrl + Alt + i
                         if (myRunnerBet.bets.length > 0) lastBetType = myRunnerBet.bets[myRunnerBet.bets.length - 1].type;
                         const mustConditionBack = runner.backOdd > 1 && (lastBetType === null || lastBetType === "lay" || myRunnerBet.bets.length % 2 === 0);
                         const mustConditionLay = runner.layOdd > 1 && (lastBetType === null || lastBetType === "back" || myRunnerBet.bets.length % 2 === 0);
-                        let betObject = null;
+                        const backObject = {
+                            name: "test",
+                            type: "back",
+                            odd: runner.backOdd,
+                            otherOdd: runner.layOdd,
+                            time: 3600 + obj.time,
+                            mise: getMise(myRunnerBet, runner.backOdd),
+                        };
+                        const layObject = {
+                            name: "test",
+                            type: "lay",
+                            odd: runner.layOdd,
+                            otherOdd: runner.backOdd,
+                            time: 3600 + obj.time,
+                            mise: getMise(myRunnerBet, runner.layOdd),
+                        };
                         if (mustConditionBack) {
-                            betObject = {
-                                name: "test",
-                                type: "back",
-                                odd: runner.backOdd,
-                                otherOdd: runner.layOdd,
-                                time: 3600 + obj.time,
-                                mise: getMise(myRunnerBet, runner.backOdd),
-                            };
                             if (
                                 runner.backOdd > bornes.borneSup
                             ) {
-                                myRunnerBet.bets.push(betObject);
+                                myRunnerBet.bets.push(backObject);
                             }
-                        } else if (mustConditionLay) {
-                            betObject = {
-                                name: "test",
-                                type: "lay",
-                                odd: runner.layOdd,
-                                otherOdd: runner.backOdd,
-                                time: 3600 + obj.time,
-                                mise: getMise(myRunnerBet, runner.layOdd),
-                            };
+                        }
+                        if (mustConditionLay) {
                             if (
                                 runner.backOdd < bornes.borneInf
                             ) {
-                                myRunnerBet.bets.push(betObject);
+                                myRunnerBet.bets.push(layObject);
                             }
                         }
                         lastObj = obj;

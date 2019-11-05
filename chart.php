@@ -21,7 +21,7 @@
 <script>
     const maxRunnerOdd = 10;
     const avgBeforeTime = 2000;
-    const ratio = 0.02;
+    const ratio = 0.006;
 </script>
 <script>
     const matchs = [];
